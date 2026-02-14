@@ -1,0 +1,1846 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e1436 0%, #3d2456 25%, #5a3d6e 50%, #4a3159 75%, #2a1b3d 100%);
+            background-attachment: fixed;
+            color: #f5e6e6;
+            padding: 2rem;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            margin: 0;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(138, 89, 168, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(93, 63, 106, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(157, 78, 141, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Animated stock chart/graph lines */
+        .graph-line {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            top: 0;
+            left: 0;
+        }
+
+        .graph-svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .graph-path {
+            stroke: rgba(157, 118, 191, 0.4);
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            animation: drawPath 8s ease-in-out infinite;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .graph-path-1 {
+            animation-delay: 0s;
+        }
+
+        .graph-path-2 {
+            animation-delay: 2s;
+            stroke: rgba(138, 89, 168, 0.35);
+        }
+
+        .graph-path-3 {
+            animation-delay: 4s;
+            stroke: rgba(107, 77, 122, 0.3);
+        }
+
+        @keyframes drawPath {
+            0% {
+                stroke-dashoffset: 2000;
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                stroke-dashoffset: 0;
+                opacity: 0.3;
+            }
+        }
+
+        /* Floating currency symbols - professional and relevant */
+        .currency-symbol {
+            position: fixed;
+            font-size: 120px;
+            font-weight: 300;
+            color: rgba(157, 118, 191, 0.18);
+            z-index: 0;
+            pointer-events: none;
+            font-family: 'Arial', sans-serif;
+            animation: float-currency 25s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(157, 118, 191, 0.3);
+        }
+
+        .currency-symbol-1 {
+            content: '$';
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+            animation-duration: 30s;
+        }
+
+        .currency-symbol-2 {
+            content: '€';
+            top: 60%;
+            right: 8%;
+            animation-delay: 5s;
+            animation-duration: 35s;
+        }
+
+        .currency-symbol-3 {
+            content: '₹';
+            bottom: 15%;
+            left: 10%;
+            animation-delay: 10s;
+            animation-duration: 28s;
+        }
+
+        .currency-symbol-4 {
+            content: '£';
+            top: 30%;
+            right: 15%;
+            animation-delay: 3s;
+            animation-duration: 32s;
+        }
+
+        .currency-symbol-5 {
+            content: '¥';
+            bottom: 40%;
+            left: 12%;
+            animation-delay: 8s;
+            animation-duration: 27s;
+        }
+
+        @keyframes float-currency {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.18;
+            }
+            25% {
+                transform: translateY(-30px) rotate(5deg);
+                opacity: 0.28;
+            }
+            50% {
+                transform: translateY(-15px) rotate(-3deg);
+                opacity: 0.24;
+            }
+            75% {
+                transform: translateY(-40px) rotate(7deg);
+                opacity: 0.26;
+            }
+        }
+
+        /* Subtle chart line animation in background */
+        .chart-line {
+            position: fixed;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(157, 118, 191, 0.25) 20%, 
+                rgba(157, 118, 191, 0.35) 50%, 
+                rgba(157, 118, 191, 0.25) 80%, 
+                transparent 100%);
+            z-index: 0;
+            pointer-events: none;
+            animation: pulse-line 8s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(157, 118, 191, 0.3);
+        }
+
+        .chart-line-1 {
+            top: 20%;
+            animation-delay: 0s;
+        }
+
+        .chart-line-2 {
+            top: 50%;
+            animation-delay: 2s;
+        }
+
+        .chart-line-3 {
+            top: 80%;
+            animation-delay: 4s;
+        }
+
+        @keyframes pulse-line {
+            0%, 100% {
+                opacity: 0.5;
+                transform: scaleY(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scaleY(2);
+            }
+        }
+
+        /* Floating coin circles */
+        .coin {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(157, 118, 191, 0.25);
+            z-index: 0;
+            pointer-events: none;
+            animation: float-coin 20s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(157, 118, 191, 0.2);
+        }
+
+        .coin::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid rgba(157, 118, 191, 0.2);
+        }
+
+        .coin-1 {
+            top: 15%;
+            right: 20%;
+            animation-delay: 0s;
+            animation-duration: 25s;
+        }
+
+        .coin-2 {
+            bottom: 25%;
+            right: 30%;
+            animation-delay: 5s;
+            animation-duration: 22s;
+        }
+
+        .coin-3 {
+            top: 45%;
+            left: 8%;
+            animation-delay: 3s;
+            animation-duration: 28s;
+        }
+
+        @keyframes float-coin {
+            0%, 100% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateY(-50px) scale(1.15) rotate(180deg);
+                opacity: 0.5;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #fff;
+        }
+
+        .input-section {
+            background: rgba(62, 44, 84, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(157, 118, 191, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideIn 0.5s ease-out;
+            box-shadow: 0 8px 32px rgba(93, 63, 106, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .input-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            color: #8b939c;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            background: rgba(30, 20, 54, 0.8);
+            border: 1px solid rgba(157, 118, 191, 0.4);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: #c5b3d9;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        /* Style date input calendar icon */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(75%) sepia(15%) saturate(500%) hue-rotate(220deg);
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #9d76bf;
+            box-shadow: 0 0 0 3px rgba(157, 118, 191, 0.3);
+            animation: glow 0.3s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(157, 118, 191, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 3px rgba(157, 118, 191, 0.3);
+            }
+        }
+
+        input::placeholder {
+            color: #7a6b8c;
+        }
+
+        /* Ensure filled inputs maintain consistent color */
+        input:not(:placeholder-shown) {
+            color: #c5b3d9;
+        }
+
+        /* Override autofill styles */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #c5b3d9;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(30, 20, 54, 0.8) inset;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c5b3d9' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 12px;
+            padding-right: 2.5rem;
+        }
+
+        select option {
+            background: #1e1436;
+            color: #c5b3d9;
+        }
+
+        .amount-wrapper {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8a59a8 0%, #5d3f6a 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 2rem;
+            color: #fff;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            align-self: flex-end;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(138, 89, 168, 0.4);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #9d76bf 0%, #6b4d7a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(157, 118, 191, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(62, 44, 84, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(157, 118, 191, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.5s ease-out backwards;
+            box-shadow: 0 4px 20px rgba(93, 63, 106, 0.2);
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(138, 89, 168, 0.4);
+            border-color: #9d76bf;
+            background: rgba(62, 44, 84, 0.7);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #8b939c;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .positive {
+            color: #10b981;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(62, 44, 84, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(157, 118, 191, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            animation: scaleIn 0.5s ease-out backwards;
+            box-shadow: 0 4px 20px rgba(93, 63, 106, 0.2);
+        }
+
+        .chart-card:nth-child(1) { animation-delay: 0.5s; }
+        .chart-card:nth-child(2) { animation-delay: 0.6s; }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        .expenses-list {
+            background: rgba(62, 44, 84, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(157, 118, 191, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            animation: fadeInUp 0.5s ease-out 0.7s backwards;
+            box-shadow: 0 4px 20px rgba(93, 63, 106, 0.2);
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(30, 20, 54, 0.6);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+            animation: slideInRight 0.3s ease-out backwards;
+            border: 1px solid rgba(157, 118, 191, 0.2);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .expense-item:hover {
+            background: rgba(62, 44, 84, 0.7);
+            transform: translateX(4px);
+            border-color: rgba(157, 118, 191, 0.4);
+            box-shadow: 0 4px 15px rgba(138, 89, 168, 0.3);
+        }
+
+        .expense-info {
+            flex: 1;
+        }
+
+        .expense-name {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .expense-category {
+            font-size: 0.875rem;
+            color: #8b939c;
+        }
+
+        .expense-amount {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #d46a7e;
+        }
+
+        .expense-date {
+            font-size: 0.875rem;
+            color: #8b939c;
+            margin-left: 1rem;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #8a59a8 0%, #5d3f6a 100%);
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: #fff;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(138, 89, 168, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .delete-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .delete-btn:active::before {
+            width: 150px;
+            height: 150px;
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #9d76bf 0%, #6b4d7a 100%);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(157, 118, 191, 0.5);
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+        }
+
+        .expense-item.deleting {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .btn-primary.success {
+            animation: bounce 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .stat-card.pulse {
+            animation: pulse 0.5s ease-out;
+        }
+
+        @media (max-width: 968px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .amount-wrapper {
+                grid-template-columns: 90px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .input-section {
+                padding: 1.5rem;
+            }
+
+            .input-section h2 {
+                font-size: 1.125rem;
+            }
+
+            .form-grid {
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+
+            .chart-title {
+                font-size: 1rem;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .expenses-list {
+                padding: 1rem;
+            }
+
+            .expense-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .expense-info {
+                width: 100%;
+            }
+
+            .expense-date {
+                margin-left: 0;
+            }
+
+            .expense-amount {
+                font-size: 1.25rem;
+            }
+
+            .delete-btn {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.75rem;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+            }
+
+            .input-section {
+                padding: 1rem;
+            }
+
+            .form-grid {
+                gap: 0.75rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 0.875rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .stat-change {
+                font-size: 0.75rem;
+            }
+
+            .charts-container {
+                gap: 1rem;
+            }
+
+            .chart-card {
+                padding: 0.875rem;
+            }
+
+            .chart-wrapper {
+                height: 220px;
+            }
+
+            .btn-primary {
+                width: 100%;
+                padding: 0.75rem;
+            }
+
+            input, select {
+                padding: 0.625rem;
+                font-size: 0.875rem;
+            }
+
+            .amount-wrapper {
+                grid-template-columns: 80px 1fr;
+            }
+
+            .expense-item {
+                padding: 0.875rem;
+            }
+
+            .expense-name {
+                font-size: 0.9375rem;
+            }
+
+            .expense-category,
+            .expense-date {
+                font-size: 0.75rem;
+            }
+
+            .expense-amount {
+                font-size: 1.125rem;
+            }
+
+            .delete-btn {
+                padding: 0.625rem;
+                font-size: 0.8125rem;
+            }
+
+            /* Optimize animations for small screens */
+            .currency-symbol {
+                font-size: 60px;
+                opacity: 0.12;
+            }
+
+            .chart-line {
+                height: 2px;
+            }
+
+            .coin {
+                width: 40px;
+                height: 40px;
+                border-width: 2px;
+            }
+
+            .coin::before {
+                width: 25px;
+                height: 25px;
+            }
+
+            .graph-path {
+                stroke-width: 1.5;
+                opacity: 0.2;
+            }
+        }
+
+        /* Tablet landscape */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Large desktop */
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 1600px;
+            }
+
+            .chart-wrapper {
+                height: 350px;
+            }
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* History Panel Styles */
+        .history-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: rgba(62, 44, 84, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(157, 118, 191, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(138, 89, 168, 0.3);
+        }
+
+        .history-toggle:hover {
+            background: rgba(138, 89, 168, 0.9);
+            transform: scale(1.1);
+        }
+
+        .history-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .history-icon span {
+            width: 20px;
+            height: 2px;
+            background: #c5b3d9;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .history-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(30, 20, 54, 0.98);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(157, 118, 191, 0.3);
+            z-index: 999;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .history-panel.open {
+            right: 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .close-history {
+            width: 30px;
+            height: 30px;
+            background: rgba(157, 118, 191, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: #c5b3d9;
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-history:hover {
+            background: rgba(157, 118, 191, 0.4);
+        }
+
+        .history-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(157, 118, 191, 0.2);
+        }
+
+        .history-tab {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: #8b939c;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .history-tab.active {
+            color: #9d76bf;
+            border-bottom-color: #9d76bf;
+        }
+
+        .history-content {
+            display: none;
+        }
+
+        .history-content.active {
+            display: block;
+        }
+
+        .history-item {
+            background: rgba(62, 44, 84, 0.4);
+            border: 1px solid rgba(157, 118, 191, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-item-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .history-item-amount {
+            color: #d46a7e;
+            font-weight: 600;
+        }
+
+        .history-item-details {
+            font-size: 0.875rem;
+            color: #8b939c;
+            margin-bottom: 0.75rem;
+        }
+
+        .history-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .restore-btn, .permanent-delete-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .restore-btn {
+            background: linear-gradient(135deg, #8a59a8 0%, #5d3f6a 100%);
+            color: #fff;
+        }
+
+        .restore-btn:hover {
+            background: linear-gradient(135deg, #9d76bf 0%, #6b4d7a 100%);
+            transform: translateY(-1px);
+        }
+
+        .permanent-delete-btn {
+            background: rgba(157, 118, 191, 0.2);
+            color: #c5b3d9;
+        }
+
+        .permanent-delete-btn:hover {
+            background: rgba(212, 106, 126, 0.3);
+            color: #d46a7e;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #8b939c;
+        }
+
+        .empty-history-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .history-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated graph lines background -->
+    <div class="graph-line">
+        <svg class="graph-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+            <path class="graph-path graph-path-1" 
+                  d="M 0,300 Q 100,250 200,280 T 400,320 Q 500,280 600,300 T 800,280 Q 900,260 1000,290 T 1200,270 Q 1300,250 1400,280 T 1600,300 Q 1700,320 1800,280 T 1920,300"
+                  stroke-dasharray="2000"
+                  stroke-dashoffset="2000"/>
+            <path class="graph-path graph-path-2" 
+                  d="M 0,500 Q 150,450 300,480 T 600,520 Q 750,480 900,500 T 1200,480 Q 1350,460 1500,490 T 1800,470 L 1920,500"
+                  stroke-dasharray="2000"
+                  stroke-dashoffset="2000"/>
+            <path class="graph-path graph-path-3" 
+                  d="M 0,700 Q 120,650 240,680 T 480,720 Q 600,680 720,700 T 960,680 Q 1080,660 1200,690 T 1440,670 Q 1560,650 1680,680 L 1920,700"
+                  stroke-dasharray="2000"
+                  stroke-dashoffset="2000"/>
+        </svg>
+    </div>
+    
+    <!-- Financial background animations -->
+    <div class="currency-symbol currency-symbol-1">$</div>
+    <div class="currency-symbol currency-symbol-2">€</div>
+    <div class="currency-symbol currency-symbol-3">₹</div>
+    <div class="currency-symbol currency-symbol-4">£</div>
+    <div class="currency-symbol currency-symbol-5">¥</div>
+    
+    <div class="chart-line chart-line-1"></div>
+    <div class="chart-line chart-line-2"></div>
+    <div class="chart-line chart-line-3"></div>
+    
+    <div class="coin coin-1"></div>
+    <div class="coin coin-2"></div>
+    <div class="coin coin-3"></div>
+    
+    <div class="container">
+        <h1>💰 Expense Tracker</h1>
+
+        <!-- History Toggle Button -->
+        <div class="history-toggle" onclick="toggleHistory()">
+            <div class="history-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="history-panel" id="historyPanel">
+            <div class="history-header">
+                <h2 class="history-title">History</h2>
+                <button class="close-history" onclick="toggleHistory()">×</button>
+            </div>
+
+            <div class="history-tabs">
+                <button class="history-tab active" onclick="switchHistoryTab('today')">Today</button>
+                <button class="history-tab" onclick="switchHistoryTab('week')">This Week</button>
+                <button class="history-tab" onclick="switchHistoryTab('month')">This Month</button>
+            </div>
+
+            <div class="history-content active" id="history-today"></div>
+            <div class="history-content" id="history-week"></div>
+            <div class="history-content" id="history-month"></div>
+        </div>
+        
+        <div class="input-section">
+            <h2>Add New Expense</h2>
+            <form id="expenseForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="expenseName">Expense Name</label>
+                        <input type="text" id="expenseName" placeholder="e.g., Groceries" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Food">Food & Dining</option>
+                            <option value="Transport">Transportation</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Bills">Bills & Utilities</option>
+                            <option value="Health">Health & Fitness</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <div class="amount-wrapper">
+                            <select id="currency" required>
+                                <option value="USD">USD $</option>
+                                <option value="EUR">EUR €</option>
+                                <option value="GBP">GBP £</option>
+                                <option value="INR">INR ₹</option>
+                                <option value="JPY">JPY ¥</option>
+                                <option value="AUD">AUD $</option>
+                                <option value="CAD">CAD $</option>
+                            </select>
+                            <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Add Expense</button>
+            </form>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value" id="totalExpenses">$0.00</div>
+                <div class="stat-change negative" id="totalChange">This month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">This Month</div>
+                <div class="stat-value" id="monthExpenses">$0.00</div>
+                <div class="stat-change" id="monthChange">vs last month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Average per Day</div>
+                <div class="stat-value" id="avgExpenses">$0.00</div>
+                <div class="stat-change positive">Last 30 days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Transactions</div>
+                <div class="stat-value" id="totalTransactions">0</div>
+                <div class="stat-change positive" id="transactionChange">All time</div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">Expenses by Category</div>
+                <div class="chart-wrapper">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Monthly Spending Trend</div>
+                <div class="chart-wrapper">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="expenses-list">
+            <h2>Recent Expenses</h2>
+            <div id="expensesList"></div>
+        </div>
+    </div>
+
+    <script>
+        Chart.defaults.color = '#c5b3d9';
+        Chart.defaults.borderColor = 'rgba(157, 118, 191, 0.3)';
+
+        // Currency symbols map
+        const currencySymbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'INR': '₹',
+            'JPY': '¥',
+            'AUD': '$',
+            'CAD': '$'
+        };
+
+        // Initialize with empty expenses and deleted history
+        let expenses = [];
+        let deletedExpenses = [];
+        let pieChart, barChart;
+        let currentCurrency = 'USD'; // Track the current selected currency
+        let isFirstVisit = true;
+
+        // Load data from localStorage
+        function loadData() {
+            const savedExpenses = localStorage.getItem('expenses');
+            const savedDeleted = localStorage.getItem('deletedExpenses');
+            const savedCurrency = localStorage.getItem('currentCurrency');
+            
+            // Check if data exists in localStorage
+            if (savedExpenses !== null) {
+                isFirstVisit = false;
+                expenses = JSON.parse(savedExpenses);
+            }
+            if (savedDeleted !== null) {
+                deletedExpenses = JSON.parse(savedDeleted);
+            }
+            if (savedCurrency !== null) {
+                currentCurrency = savedCurrency;
+                document.getElementById('currency').value = savedCurrency;
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            localStorage.setItem('deletedExpenses', JSON.stringify(deletedExpenses));
+            localStorage.setItem('currentCurrency', currentCurrency);
+        }
+
+        // Load data on page load
+        loadData();
+
+        // Toggle history panel
+        function toggleHistory() {
+            const panel = document.getElementById('historyPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                displayHistory();
+            }
+        }
+
+        // Switch history tabs
+        function switchHistoryTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.history-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.history-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`history-${tab}`).classList.add('active');
+        }
+
+        // Display history in different time periods
+        function displayHistory() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            // Filter deleted expenses by time period
+            const todayItems = deletedExpenses.filter(exp => {
+                const expDate = new Date(exp.deletedAt);
+                return expDate >= today;
+            });
+
+            const weekItems = deletedExpenses.filter(exp => {
+                const expDate = new Date(exp.deletedAt);
+                return expDate >= weekAgo;
+            });
+
+            const monthItems = deletedExpenses.filter(exp => {
+                const expDate = new Date(exp.deletedAt);
+                return expDate >= monthAgo;
+            });
+
+            // Display each period
+            displayHistoryItems('history-today', todayItems, 'today');
+            displayHistoryItems('history-week', weekItems, 'this week');
+            displayHistoryItems('history-month', monthItems, 'this month');
+        }
+
+        // Display history items in a container
+        function displayHistoryItems(containerId, items, period) {
+            const container = document.getElementById(containerId);
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-history">
+                        <div class="empty-history-icon">📭</div>
+                        <p>No deleted expenses ${period}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.slice().reverse().map((item, index) => {
+                const symbol = currencySymbols[item.currency];
+                const deletedDate = new Date(item.deletedAt).toLocaleString('en-GB');
+                const expenseDate = new Date(item.date).toLocaleDateString('en-GB');
+                
+                return `
+                    <div class="history-item" style="animation-delay: ${index * 0.05}s">
+                        <div class="history-item-header">
+                            <span class="history-item-name">${item.name}</span>
+                            <span class="history-item-amount">${symbol}${item.amount.toFixed(2)}</span>
+                        </div>
+                        <div class="history-item-details">
+                            ${item.category} • ${expenseDate}<br>
+                            <small>Deleted: ${deletedDate}</small>
+                        </div>
+                        <div class="history-item-actions">
+                            <button class="restore-btn" onclick="restoreExpense(${deletedExpenses.indexOf(item)})">
+                                Restore
+                            </button>
+                            <button class="permanent-delete-btn" onclick="permanentDelete(${deletedExpenses.indexOf(item)})">
+                                Delete Forever
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Restore expense
+        function restoreExpense(index) {
+            const expense = deletedExpenses[index];
+            delete expense.deletedAt;
+            expenses.push(expense);
+            deletedExpenses.splice(index, 1);
+            saveData();
+            updateDashboard();
+            displayHistory();
+        }
+
+        // Permanent delete
+        function permanentDelete(index) {
+            if (confirm('Are you sure you want to permanently delete this expense? This cannot be undone.')) {
+                deletedExpenses.splice(index, 1);
+                saveData();
+                displayHistory();
+            }
+        }
+
+        // Set today's date as default
+        document.getElementById('date').valueAsDate = new Date();
+
+        // Initialize charts
+        function initCharts() {
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Other'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            '#FF6B6B',  // Coral Red - Food
+                            '#4ECDC4',  // Turquoise - Transport
+                            '#FFD93D',  // Golden Yellow - Shopping
+                            '#A8E6CF',  // Mint Green - Entertainment
+                            '#FF8B94',  // Pink - Bills
+                            '#95E1D3',  // Seafoam - Health
+                            '#C7CEEA'   // Lavender - Other
+                        ],
+                        borderWidth: 3,
+                        borderColor: 'rgba(30, 20, 54, 0.8)',
+                        hoverBorderColor: '#9d76bf',
+                        hoverBorderWidth: 4,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.parsed || 0;
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            
+            // Create vibrant gradient for bars
+            const gradient = barCtx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, '#FF6B6B');
+            gradient.addColorStop(0.5, '#4ECDC4');
+            gradient.addColorStop(1, '#FFD93D');
+            
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Monthly Expenses',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: gradient,
+                        borderRadius: 6,
+                        hoverBackgroundColor: '#A8E6CF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(157, 118, 191, 0.2)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // Update all data
+        function updateDashboard() {
+            // Add pulse animation to stat cards
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.classList.add('pulse');
+                setTimeout(() => card.classList.remove('pulse'), 500);
+            });
+            
+            updateStats();
+            updateCharts();
+            displayExpenses();
+        }
+
+        // Update statistics with animation
+        function updateStats() {
+            const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const avgPerDay = total / 30;
+            
+            const symbol = currencySymbols[currentCurrency];
+            
+            animateValue('totalExpenses', 0, total, 800, symbol);
+            animateValue('monthExpenses', 0, total, 800, symbol);
+            animateValue('avgExpenses', 0, avgPerDay, 800, symbol);
+            animateCounter('totalTransactions', 0, expenses.length, 600);
+        }
+
+        // Animate number counting
+        function animateValue(id, start, end, duration, symbol = '') {
+            const element = document.getElementById(id);
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            // Clear any existing interval
+            if (element.animationTimer) {
+                clearInterval(element.animationTimer);
+            }
+            
+            element.animationTimer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    element.innerHTML = `<span style="display: inline-block; min-width: 20px;">${symbol}</span>${end.toFixed(2)}`;
+                    clearInterval(element.animationTimer);
+                } else {
+                    element.innerHTML = `<span style="display: inline-block; min-width: 20px;">${symbol}</span>${current.toFixed(2)}`;
+                }
+            }, 16);
+        }
+
+        // Animate counter
+        function animateCounter(id, start, end, duration) {
+            const element = document.getElementById(id);
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            // Clear any existing interval
+            if (element.animationTimer) {
+                clearInterval(element.animationTimer);
+            }
+            
+            element.animationTimer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    element.textContent = Math.round(end);
+                    clearInterval(element.animationTimer);
+                } else {
+                    element.textContent = Math.round(current);
+                }
+            }, 16);
+        }
+
+        // Update charts
+        function updateCharts() {
+            // Update pie chart
+            const categoryTotals = {
+                'Food': 0,
+                'Transport': 0,
+                'Shopping': 0,
+                'Entertainment': 0,
+                'Bills': 0,
+                'Health': 0,
+                'Other': 0
+            };
+
+            expenses.forEach(exp => {
+                categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
+            });
+
+            pieChart.data.datasets[0].data = Object.values(categoryTotals);
+            pieChart.update();
+
+            // Update bar chart with actual monthly data
+            const monthlyTotals = {};
+            const currentDate = new Date();
+            
+            // Get last 6 months
+            const months = [];
+            const monthLabels = [];
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
+                months.push(monthKey);
+                monthLabels.push(monthLabel);
+                monthlyTotals[monthKey] = 0;
+            }
+            
+            // Calculate actual totals from expenses
+            expenses.forEach(exp => {
+                const expDate = new Date(exp.date);
+                const monthKey = `${expDate.getFullYear()}-${String(expDate.getMonth() + 1).padStart(2, '0')}`;
+                if (monthlyTotals.hasOwnProperty(monthKey)) {
+                    monthlyTotals[monthKey] += exp.amount;
+                }
+            });
+            
+            const monthlyData = months.map(month => monthlyTotals[month]);
+            barChart.data.labels = monthLabels;
+            barChart.data.datasets[0].data = monthlyData;
+            barChart.update();
+        }
+
+        // Display expenses list
+        function displayExpenses() {
+            const listContainer = document.getElementById('expensesList');
+            listContainer.innerHTML = '';
+
+            expenses.slice().reverse().forEach((expense, index) => {
+                const item = document.createElement('div');
+                item.className = 'expense-item';
+                item.style.animationDelay = `${index * 0.05}s`;
+                
+                const symbol = currencySymbols[expense.currency];
+                const displayDate = new Date(expense.date).toLocaleDateString('en-GB');
+                
+                item.innerHTML = `
+                    <div class="expense-info">
+                        <div class="expense-name">${expense.name}</div>
+                        <div class="expense-category">${expense.category}</div>
+                    </div>
+                    <div class="expense-date">${displayDate}</div>
+                    <div class="expense-amount">${symbol}${expense.amount.toFixed(2)}</div>
+                    <button class="delete-btn" onclick="deleteExpense(${expenses.length - 1 - index})">Delete</button>
+                `;
+                
+                listContainer.appendChild(item);
+            });
+        }
+
+        // Delete expense with animation (moves to history)
+        function deleteExpense(index) {
+            const items = document.querySelectorAll('.expense-item');
+            const targetItem = items[expenses.length - 1 - index];
+            
+            if (targetItem) {
+                targetItem.classList.add('deleting');
+                setTimeout(() => {
+                    const deletedExpense = expenses.splice(index, 1)[0];
+                    deletedExpense.deletedAt = new Date().toISOString();
+                    deletedExpenses.push(deletedExpense);
+                    saveData();
+                    updateDashboard();
+                }, 300);
+            } else {
+                const deletedExpense = expenses.splice(index, 1)[0];
+                deletedExpense.deletedAt = new Date().toISOString();
+                deletedExpenses.push(deletedExpense);
+                saveData();
+                updateDashboard();
+            }
+        }
+
+        // Handle currency change
+        document.getElementById('currency').addEventListener('change', function(e) {
+            currentCurrency = e.target.value;
+            saveData();
+            updateStats(); // Update the stats display with new currency symbol
+        });
+
+        // Handle form submission
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newExpense = {
+                name: document.getElementById('expenseName').value,
+                category: document.getElementById('category').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                currency: document.getElementById('currency').value,
+                date: document.getElementById('date').value
+            };
+
+            expenses.push(newExpense);
+            saveData();
+            
+            // Add animation
+            const form = this;
+            const submitBtn = form.querySelector('.btn-primary');
+            form.classList.add('loading');
+            submitBtn.classList.add('success');
+            
+            setTimeout(() => {
+                updateDashboard();
+                form.reset();
+                form.classList.remove('loading');
+                submitBtn.classList.remove('success');
+                document.getElementById('date').valueAsDate = new Date();
+            }, 500);
+        });
+
+        // Initialize
+        initCharts();
+        updateDashboard();
+    </script>
+</body>
+</html>
